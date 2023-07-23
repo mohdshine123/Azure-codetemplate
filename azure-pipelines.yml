@@ -19,3 +19,18 @@ steps:
   displayName: 'Run a multi-line script'
 
 
+  - task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $simpleBranchName = "$(System.PullRequest.TargetBranch)".Substring("refs/heads".length + 1)
+      $refsBranchName = "origin/$simpleBranchName"
+      $changedFiles = git diff $refsBranchName --name-only
+     
+      foreach ($file in $changedFiles) {
+ Write-Host "Checking lint on: $sourceDirectory/$file"
+    npm run lint "$sourceDirectory/$file"
+    if ($? -eq $false) {
+      [void]$errors.Add("Linting error on: $sourceDirectory/$file ");
+    }
+
